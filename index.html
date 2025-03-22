@@ -2,43 +2,50 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador de Rentabilidad Inmobiliaria</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador Inversión Inmobiliaria</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9fafb;
       margin: 0; padding: 0;
-      background-color: #f4f4f4;
     }
 
     .container {
-      max-width: 900px;
-      margin: 30px auto;
-      background: white;
-      padding: 20px 30px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
+      max-width: 1000px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
     }
 
     h2 {
-      border-bottom: 1px solid #ddd;
+      color: #34495e;
+      margin-top: 40px;
+      border-bottom: 2px solid #ecf0f1;
       padding-bottom: 5px;
-      margin-top: 30px;
-      color: #333;
     }
 
     label {
       display: block;
-      margin: 12px 0 4px;
-      font-weight: bold;
+      margin: 15px 0 5px;
+      font-weight: 600;
+      color: #555;
     }
 
-    input[type="number"], input[type="text"] {
+    input[type="number"], input[type="text"], select {
       width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
+      padding: 10px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 15px;
     }
 
     .form-section {
@@ -46,112 +53,108 @@
     }
 
     .button {
-      background-color: #1976d2;
+      background-color: #2980b9;
       color: white;
       border: none;
       padding: 12px 24px;
       font-size: 16px;
       border-radius: 5px;
       cursor: pointer;
+      margin-top: 20px;
     }
 
     .button:hover {
-      background-color: #1565c0;
+      background-color: #1c6ea4;
+    }
+
+    .euribor-inputs {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Simulador de Rentabilidad Inmobiliaria</h1>
+<div class="container">
+  <h1>Simulador de Rentabilidad Inmobiliaria</h1>
 
-    <!-- 1. Datos de la compra -->
-    <div class="form-section">
-      <h2>1. Datos de la compra</h2>
-      <label>Precio de compra (€)</label>
-      <input type="number" id="precioCompra">
+  <!-- Sección de hipoteca -->
+  <div class="form-section">
+    <h2>2. Hipoteca</h2>
 
-      <label>Capital inicial aportado (€)</label>
-      <input type="number" id="capitalInicial">
+    <label>¿Tienes hipoteca?</label>
+    <select id="tieneHipoteca" onchange="toggleHipoteca()">
+      <option value="no">No</option>
+      <option value="si">Sí</option>
+    </select>
 
-      <label>Costes iniciales adicionales (€)</label>
-      <input type="number" id="costesIniciales">
-    </div>
-
-    <!-- 2. Hipoteca -->
-    <div class="form-section">
-      <h2>2. Hipoteca</h2>
+    <div id="datosHipoteca" style="display:none;">
       <label>Importe de la hipoteca (€)</label>
       <input type="number" id="importeHipoteca">
 
-      <label>Duración (años)</label>
-      <input type="number" id="duracionHipoteca">
+      <label>Duración de la hipoteca (años)</label>
+      <input type="number" id="duracionHipoteca" onchange="actualizarEuriborInputs()">
 
-      <label>Intereses anuales separados por coma (%)<br><small>(ej: 2,2.5,3... para cada año)</small></label>
-      <input type="text" id="interesesAnuales">
+      <label>Tipo de interés</label>
+      <select id="tipoInteres" onchange="mostrarInteresCorrespondiente()">
+        <option value="">Selecciona</option>
+        <option value="fijo">Fijo</option>
+        <option value="variable">Variable</option>
+      </select>
+
+      <div id="interesFijo" style="display:none;">
+        <label>Interés fijo anual (%)</label>
+        <input type="number" id="interesFijoValor" step="0.01">
+      </div>
+
+      <div id="interesVariable" style="display:none;">
+        <label>Diferencial (%)</label>
+        <input type="number" id="diferencial" step="0.01">
+
+        <label>Euríbor esperado por año (%)</label>
+        <div id="euriborInputs" class="euribor-inputs"></div>
+      </div>
     </div>
-
-    <!-- 3. Periodo de análisis -->
-    <div class="form-section">
-      <h2>3. Periodo de análisis</h2>
-      <label>Duración del análisis (años)</label>
-      <input type="number" id="duracionAnalisis">
-    </div>
-
-    <!-- 4. Ingresos -->
-    <div class="form-section">
-      <h2>4. Ingresos</h2>
-      <label>Ingreso mensual por alquiler (€)</label>
-      <input type="number" id="alquilerMensual">
-
-      <label>Tasa de ocupación estimada (%)</label>
-      <input type="number" id="ocupacion">
-    </div>
-
-    <!-- 5. Gastos -->
-    <div class="form-section">
-      <h2>5. Gastos anuales</h2>
-      <label>Impuestos y tasas (€)</label>
-      <input type="number" id="impuestos">
-
-      <label>Seguro del hogar (€)</label>
-      <input type="number" id="seguro">
-
-      <label>Mantenimiento (€)</label>
-      <input type="number" id="mantenimiento">
-
-      <label>Comunidad / servicios (€)</label>
-      <input type="number" id="comunidad">
-
-      <label>Otros gastos (€)</label>
-      <input type="number" id="otrosGastos">
-    </div>
-
-    <!-- 6. Venta -->
-    <div class="form-section">
-      <h2>6. Venta al final del periodo</h2>
-      <label>Precio estimado de venta (€)</label>
-      <input type="number" id="precioVenta">
-
-      <label>Costes de venta (€ o %)</label>
-      <input type="number" id="costesVenta">
-
-      <label>Plusvalía esperada (%)</label>
-      <input type="number" id="plusvalia">
-    </div>
-
-    <!-- 7. Otros -->
-    <div class="form-section">
-      <h2>7. Otros</h2>
-      <label>Inflación esperada (% anual)</label>
-      <input type="number" id="inflacion">
-
-      <label>Rentabilidad alternativa esperada (% anual)</label>
-      <input type="number" id="rentabilidadAlternativa">
-    </div>
-
-    <button class="button" onclick="calcularRentabilidad()">Calcular rentabilidad</button>
   </div>
+
+  <button class="button">Siguiente paso</button>
+</div>
+
+<script>
+  function toggleHipoteca() {
+    const tieneHipoteca = document.getElementById("tieneHipoteca").value;
+    const datos = document.getElementById("datosHipoteca");
+    datos.style.display = tieneHipoteca === "si" ? "block" : "none";
+  }
+
+  function mostrarInteresCorrespondiente() {
+    const tipo = document.getElementById("tipoInteres").value;
+    document.getElementById("interesFijo").style.display = tipo === "fijo" ? "block" : "none";
+    document.getElementById("interesVariable").style.display = tipo === "variable" ? "block" : "none";
+    if (tipo === "variable") {
+      actualizarEuriborInputs();
+    }
+  }
+
+  function actualizarEuriborInputs() {
+    const duracion = parseInt(document.getElementById("duracionHipoteca").value);
+    const contenedor = document.getElementById("euriborInputs");
+    contenedor.innerHTML = "";
+
+    if (!isNaN(duracion) && duracion > 0) {
+      for (let i = 1; i <= duracion; i++) {
+        const input = document.createElement("input");
+        input.type = "number";
+        input.step = "0.01";
+        input.placeholder = `Año ${i}`;
+        input.id = `euribor_${i}`;
+        contenedor.appendChild(input);
+      }
+    }
+  }
+</script>
 
 </body>
 </html>
